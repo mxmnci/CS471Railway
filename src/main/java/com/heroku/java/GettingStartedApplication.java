@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.sql.DataSource;
+
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Map;
@@ -15,6 +17,16 @@ import java.util.Map;
 @Controller
 public class GettingStartedApplication {
     private final DataSource dataSource;
+
+    private static final String AB = "abcdefghijklmnopqrstuvwxyz";
+    private static SecureRandom rnd = new SecureRandom();
+
+    String getRandomString() {
+        StringBuilder sb = new StringBuilder(10);
+        for (int i = 0; i < 10; i++)
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+        return sb.toString();
+    }
 
     @Autowired
     public GettingStartedApplication(DataSource dataSource) {
@@ -30,13 +42,19 @@ public class GettingStartedApplication {
     String database(Map<String, Object> model) {
         try (Connection connection = dataSource.getConnection()) {
             final var statement = connection.createStatement();
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
-            statement.executeUpdate("INSERT INTO ticks VALUES (now())");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS ticks (tick timestamp, random_string varchar(30))");
+            String randomString = getRandomString();
+            statement.executeUpdate(
+                    "INSERT INTO ticks VALUES (now(), '" + randomString + "')");
 
-            final var resultSet = statement.executeQuery("SELECT tick FROM ticks");
+            System.out.println("Inserted random string into database: " + randomString);
+
+            final var resultSet = statement.executeQuery("SELECT tick, random_string FROM ticks");
             final var output = new ArrayList<>();
             while (resultSet.next()) {
-                output.add("Read from DB: " + resultSet.getTimestamp("tick"));
+                output.add(
+                        "Read from DB: " + resultSet.getTimestamp("tick") + " " + resultSet.getString("random_string"));
             }
 
             model.put("records", output);
