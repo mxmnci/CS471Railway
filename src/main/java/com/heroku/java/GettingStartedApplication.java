@@ -48,7 +48,8 @@ public class GettingStartedApplication {
             statement.executeUpdate(
                     "INSERT INTO ticks VALUES (now(), '" + randomString + "')");
 
-            System.out.println("Inserted random string into database: " + randomString);
+            System.out.println(
+                    "Print statement inside of the GettingStartedApplication.database() method. Max Monciardini");
 
             final var resultSet = statement.executeQuery("SELECT tick, random_string FROM ticks");
             final var output = new ArrayList<>();
